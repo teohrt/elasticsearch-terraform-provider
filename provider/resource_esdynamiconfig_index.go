@@ -40,9 +40,6 @@ func resourceIndexConfig() *schema.Resource {
 		Read:   resourceReadItem,
 		Update: resourceCreateItem,
 		Delete: resourceDeleteItem,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 	}
 }
 
@@ -64,8 +61,8 @@ func validateIndex(v interface{}, k string) (ws []string, es []error) {
 
 func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 	client := m.(*http.Client)
-	url := fmt.Sprintf("%s/%s/_settings?pretty", d.Get("es_endpoint").(string), d.Get("indexName"))
-
+	//url := fmt.Sprintf("%s/%s/_settings?pretty", d.Get("es_endpoint").(string), d.Get("indexName"))
+	url := "http://localhost:8080/"
 	body := strings.NewReader(fmt.Sprintf(`
 		{
 			"index.search.slowlog.threshold.query.warn": "%s",
@@ -84,13 +81,14 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	d.SetId(d.Get("indexName").(string))
+	d.SetId(d.Get("name").(string))
 	return nil
 }
 
 func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 	client := m.(*http.Client)
-	url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("indexName"))
+	// url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("name"))
+	url := "http://localhost:8080/"
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -102,7 +100,7 @@ func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	d.Set("indexName", d.Id())
+	d.Set("name", d.Id())
 	d.Set("query_warn_threshold", "TODO")
 	d.Set("query_info_threshold", "TODO")
 
@@ -111,7 +109,8 @@ func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 
 func resourceDeleteItem(d *schema.ResourceData, m interface{}) error {
 	client := m.(*http.Client)
-	url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("indexName"))
+	// url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("name"))
+	url := "http://localhost:8080/"
 
 	body := strings.NewReader(`
 		{
@@ -131,7 +130,8 @@ func resourceDeleteItem(d *schema.ResourceData, m interface{}) error {
 
 func resourceExistsItem(d *schema.ResourceData, m interface{}) error {
 	client := m.(*http.Client)
-	url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("indexName"))
+	// url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("name"))
+	url := "http://localhost:8080/"
 
 	body := strings.NewReader(`
 		{
