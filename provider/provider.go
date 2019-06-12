@@ -39,7 +39,7 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"elasticsearch_dynamic_index_config": resourceElasticsearchDynamicIndexConfig(),
+			"esdynamiconfig_index": resourceElasticsearchDynamicIndexConfig(),
 		},
 		ConfigureFunc: providerClient,
 	}

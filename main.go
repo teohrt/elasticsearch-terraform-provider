@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hashicorp/terraform/plugin"
-	"github.com/teohrt/terraform-provider-elasticsearch-index-thresholds/provider"
+	"github.com/teohrt/terraform-provider-esdynamiconfig/provider"
 )
 
 func main() {

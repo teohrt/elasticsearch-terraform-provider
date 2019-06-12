@@ -20,20 +20,20 @@ func resourceElasticsearchDynamicIndexConfig() *schema.Resource {
 				// ValidateFunc: validateIndex,
 			},
 			"query_warn_threshold": {
-				Type:        schema.TypeString,
-				Default:     "-1",
-				Optional:    true,
-				ForceNew:    false,
-				Description: "",
-				// ValidateFunc: validateIndex,
+				Type:         schema.TypeString,
+				Default:      "-1",
+				Optional:     true,
+				ForceNew:     false,
+				Description:  "",
+				ValidateFunc: validateIndex,
 			},
 			"query_info_threshold": {
-				Type:        schema.TypeString,
-				Default:     "-1",
-				Optional:    true,
-				ForceNew:    false,
-				Description: "",
-				// ValidateFunc: validateIndex,
+				Type:         schema.TypeString,
+				Default:      "-1",
+				Optional:     true,
+				ForceNew:     false,
+				Description:  "",
+				ValidateFunc: validateIndex,
 			},
 		},
 		Create: resourceCreateItem,
@@ -64,7 +64,7 @@ func validateIndex(v interface{}, k string) (ws []string, es []error) {
 
 func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 	client := m.(*http.Client)
-	url := d.Get("ES_endpoint").(string)
+	url := fmt.Sprintf("%s/%s/_settings?pretty", d.Get("es_endpoint").(string), d.Get("indexName"))
 
 	body := strings.NewReader(fmt.Sprintf(`
 		{
@@ -90,7 +90,7 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 
 func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 	client := m.(*http.Client)
-	url := fmt.Sprintf("%s/%s", d.Get("ES_endpoint").(string), d.Get("indexName"))
+	url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("indexName"))
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -111,7 +111,7 @@ func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 
 func resourceDeleteItem(d *schema.ResourceData, m interface{}) error {
 	client := m.(*http.Client)
-	url := d.Get("ES_endpoint").(string)
+	url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("indexName"))
 
 	body := strings.NewReader(`
 		{
@@ -131,7 +131,7 @@ func resourceDeleteItem(d *schema.ResourceData, m interface{}) error {
 
 func resourceExistsItem(d *schema.ResourceData, m interface{}) error {
 	client := m.(*http.Client)
-	url := d.Get("ES_endpoint").(string)
+	url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("indexName"))
 
 	body := strings.NewReader(`
 		{
