@@ -1,8 +1,11 @@
 package provider
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -62,7 +65,7 @@ func validateIndex(v interface{}, k string) (ws []string, es []error) {
 
 func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 	client := m.(client.Client)
-	body := strings.NewReader(fmt.Sprintf(`
+	reqBody := strings.NewReader(fmt.Sprintf(`
 		{
 			"index.search.slowlog.threshold.query.warn": "%s",
 			"index.search.slowlog.threshold.query.info": "%s"
@@ -70,12 +73,14 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 		d.Get("query_warn_threshold").(string),
 		d.Get("query_info_threshold").(string)))
 
-	res, err := client.Put(d.Get("name").(string), body)
+	res, err := client.Put(d.Get("name").(string), reqBody)
 	if err != nil {
 		return err
 	}
-	if res == nil { // TODO: validate res
-		return errors.New("Bad response from endpoint during CreateItem")
+
+	err = handleResponse(res)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Bad response in resourceCreateItem: %s", err.Error()))
 	}
 
 	d.SetId(d.Get("name").(string))
@@ -89,13 +94,15 @@ func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
-	if res == nil { // TODO: validate res
-		return errors.New("Bad response from endpoint during ReadItem")
+
+	item, err := readItem(res, d.Get("name").(string))
+	if err != nil {
+		return err
 	}
 
 	d.Set("name", d.Id())
-	d.Set("query_warn_threshold", "TODO")
-	d.Set("query_info_threshold", "TODO")
+	d.Set("query_warn_threshold", item.query_warn_threshold)
+	d.Set("query_info_threshold", item.query_info_threshold)
 
 	return nil
 }
@@ -112,9 +119,46 @@ func resourceDeleteItem(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
-	if res == nil { // TODO: validate res
-		return errors.New("Bad response from endpoint during CreateItem")
+
+	err = handleResponse(res)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Bad response in resourceDeleteItem: %s", err.Error()))
 	}
 
 	return err
+}
+
+func handleResponse(res *http.Response) error {
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	goodRes := `{"acknowledged":true}`
+
+	if string(resBody) != goodRes {
+		return errors.New(string(resBody))
+	}
+
+	return nil
+}
+
+func readItem(res *http.Response, indexName string) (*readResponse, error) {
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return &readResponse{}, err
+	}
+
+	var jsonInterface interface{}
+	if err = json.Unmarshal(resBody, &jsonInterface); err != nil {
+		return &readResponse{}, err
+	}
+
+	qwt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["warn"].(string)
+	qit := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["info"].(string)
+
+	return &readResponse{
+		query_warn_threshold: qwt,
+		query_info_threshold: qit,
+	}, nil
 }

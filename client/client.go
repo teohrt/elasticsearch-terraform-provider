@@ -48,7 +48,7 @@ func New(config Config) Client {
 }
 
 func (c clientImpl) Get(index string) (*http.Response, error) {
-	url := fmt.Sprintf("%s/%s", c.endpoint, index)
+	url := fmt.Sprintf("%s/%s/_settings?pretty", c.endpoint, index)
 
 	res, err := c.client.Get(url)
 	if err != nil {
@@ -59,12 +59,15 @@ func (c clientImpl) Get(index string) (*http.Response, error) {
 }
 
 func (c clientImpl) Put(index string, body io.Reader) (*http.Response, error) {
-	url := fmt.Sprintf("%s/%s", c.endpoint, index)
+	url := fmt.Sprintf("%s/%s/_settings?pretty", c.endpoint, index)
 
 	req, err := http.NewRequest("PUT", url, body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Set("Content-Type", "application/json")
+
 	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
