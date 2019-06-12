@@ -11,7 +11,7 @@ import (
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"elasticsearch_endpoint": {
+			"es_endpoint": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -19,9 +19,27 @@ func Provider() terraform.ResourceProvider {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"aws_access_key": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     schema.EnvDefaultFunc("aws_access_key", nil),
+				Description: "The access key for use with AWS ES Service domains",
+			},
+			"aws_secret_key": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     schema.EnvDefaultFunc("aws_secret_key", nil),
+				Description: "The secret key for use with AWS ES Service domains",
+			},
+			"aws_token": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     schema.EnvDefaultFunc("aws_token", nil),
+				Description: "The session token for use with AWS ES Service domains",
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"elasticsearch_dynamic_index_config": resourceItem(),
+			"elasticsearch_dynamic_index_config": resourceElasticsearchDynamicIndexConfig(),
 		},
 		ConfigureFunc: providerClient,
 	}
