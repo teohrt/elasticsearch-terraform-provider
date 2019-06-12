@@ -9,3 +9,6 @@ init: build
 
 plan:
 	cd infrastructure/terraform; terraform plan
+	
+apply:
+	cd infrastructure/terraform; terraform apply

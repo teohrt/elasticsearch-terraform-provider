@@ -1,5 +1,5 @@
 provider "esdynamiconfig" {
-    es_endpoint = "http://localhost:8080/"
+    es_endpoint = "http://localhost:8080"
     region = "us-east-2"
 }
 

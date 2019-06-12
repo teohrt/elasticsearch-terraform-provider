@@ -1,12 +1,13 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/teohrt/terraform-provider-esdynamiconfig/client"
 )
 
 func resourceIndexConfig() *schema.Resource {
@@ -60,9 +61,7 @@ func validateIndex(v interface{}, k string) (ws []string, es []error) {
 }
 
 func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
-	client := m.(*http.Client)
-	//url := fmt.Sprintf("%s/%s/_settings?pretty", d.Get("es_endpoint").(string), d.Get("indexName"))
-	url := "http://localhost:8080/"
+	client := m.(client.Client)
 	body := strings.NewReader(fmt.Sprintf(`
 		{
 			"index.search.slowlog.threshold.query.warn": "%s",
@@ -71,14 +70,12 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 		d.Get("query_warn_threshold").(string),
 		d.Get("query_info_threshold").(string)))
 
-	req, err := http.NewRequest("PUT", url, body)
+	res, err := client.Put(d.Get("name").(string), body)
 	if err != nil {
 		return err
 	}
-
-	res, err := client.Do(req)
-	if res != nil {
-		return err
+	if res == nil { // TODO: validate res
+		return errors.New("Bad response from endpoint during CreateItem")
 	}
 
 	d.SetId(d.Get("name").(string))
@@ -86,18 +83,14 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceReadItem(d *schema.ResourceData, m interface{}) error {
-	client := m.(*http.Client)
-	// url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("name"))
-	url := "http://localhost:8080/"
+	client := m.(client.Client)
 
-	req, err := http.NewRequest("GET", url, nil)
+	res, err := client.Get(d.Get("name").(string))
 	if err != nil {
 		return err
 	}
-
-	_, err = client.Do(req)
-	if err != nil {
-		return err
+	if res == nil { // TODO: validate res
+		return errors.New("Bad response from endpoint during ReadItem")
 	}
 
 	d.Set("name", d.Id())
@@ -108,43 +101,20 @@ func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceDeleteItem(d *schema.ResourceData, m interface{}) error {
-	client := m.(*http.Client)
-	// url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("name"))
-	url := "http://localhost:8080/"
-
+	client := m.(client.Client)
 	body := strings.NewReader(`
 		{
 			"index.search.slowlog.threshold.query.warn": -1,
 			"index.search.slowlog.threshold.query.info": -1
 		}`)
 
-	req, err := http.NewRequest("PUT", url, body)
+	res, err := client.Put(d.Get("name").(string), body)
 	if err != nil {
 		return err
 	}
-
-	_, err = client.Do(req)
-
-	return err
-}
-
-func resourceExistsItem(d *schema.ResourceData, m interface{}) error {
-	client := m.(*http.Client)
-	// url := fmt.Sprintf("%s/%s", d.Get("es_endpoint").(string), d.Get("name"))
-	url := "http://localhost:8080/"
-
-	body := strings.NewReader(`
-		{
-			"index.search.slowlog.threshold.query.warn": -1,
-			"index.search.slowlog.threshold.query.info": -1
-		}`)
-
-	req, err := http.NewRequest("PUT", url, body)
-	if err != nil {
-		return err
+	if res == nil { // TODO: validate res
+		return errors.New("Bad response from endpoint during CreateItem")
 	}
-
-	_, err = client.Do(req)
 
 	return err
 }
