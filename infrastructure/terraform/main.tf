@@ -4,7 +4,7 @@ provider "esdynamiconfig" {
 }
 
 resource "esdynamiconfig_index" "test" {
-    indexName = "test"
+    name = "test"
     query_warn_threshold = "5s"
     query_info_threshold = "2s"
 }

@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceElasticsearchDynamicIndexConfig() *schema.Resource {
+func resourceIndexConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"indexName": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name of the resource, also acts as it's unique ID",
-				ForceNew:    true,
-				// ValidateFunc: validateIndex,
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "The name of the resource, also acts as it's unique ID",
+				ForceNew:     true,
+				ValidateFunc: validateIndex,
 			},
 			"query_warn_threshold": {
 				Type:         schema.TypeString,
