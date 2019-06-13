@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -83,37 +84,64 @@ func getItem(res *http.Response, indexName string) (*GetItemResponse, error) {
 		return &GetItemResponse{}, err
 	}
 
+	item := &GetItemResponse{}
+
 	var jsonInterface interface{}
 	if err = json.Unmarshal(resBody, &jsonInterface); err != nil {
 		return &GetItemResponse{}, err
 	}
 
-	// TODO: validation required
-	qwt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["warn"].(string)
-	qit := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["info"].(string)
-	qdt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["debug"].(string)
-	qtt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["trace"].(string)
+	if qwt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["warn"].(string); ok {
+		item.Query_warn_threshold = qwt
+	} else {
+		apiError()
+	}
+	if qit, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["info"].(string); ok {
+		item.Query_info_threshold = qit
+	} else {
+		apiError()
+	}
+	if qdt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["debug"].(string); ok {
+		item.Query_debug_threshold = qdt
+	} else {
+		apiError()
+	}
+	if qtt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["trace"].(string); ok {
+		item.Query_trace_threshold = qtt
+	} else {
+		apiError()
+	}
 
-	fwt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["warn"].(string)
-	fit := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["info"].(string)
-	fdt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["debug"].(string)
-	ftt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["trace"].(string)
+	if fwt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["warn"].(string); ok {
+		item.Fetch_warn_threshold = fwt
+	} else {
+		apiError()
+	}
+	if fit, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["info"].(string); ok {
+		item.Fetch_info_threshold = fit
+	} else {
+		apiError()
+	}
+	if fdt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["debug"].(string); ok {
+		item.Fetch_debug_threshold = fdt
+	} else {
+		apiError()
+	}
+	if ftt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["trace"].(string); ok {
+		item.Fetch_trace_threshold = ftt
+	} else {
+		apiError()
+	}
 
-	return &GetItemResponse{
-		Query_warn_threshold:  qwt,
-		Query_info_threshold:  qit,
-		Query_debug_threshold: qdt,
-		Query_trace_threshold: qtt,
-
-		Fetch_warn_threshold:  fwt,
-		Fetch_info_threshold:  fit,
-		Fetch_debug_threshold: fdt,
-		Fetch_trace_threshold: ftt,
-	}, nil
+	return item, nil
 }
 
 func (c clientImpl) awsSigner(req *http.Request, body io.ReadSeeker) error {
 	signer := v4.NewSigner(c.Creds)
 	_, err := signer.Sign(req, body, "es", c.Region, time.Now())
 	return err
+}
+
+func apiError() (*GetItemResponse, error) {
+	return nil, errors.New("Provider error: An outdated version of Elasticsearch's slow log API contract is being used.")
 }
