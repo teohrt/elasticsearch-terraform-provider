@@ -91,10 +91,24 @@ func getItem(res *http.Response, indexName string) (*GetItemResponse, error) {
 	// TODO: validation required
 	qwt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["warn"].(string)
 	qit := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["info"].(string)
+	qdt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["debug"].(string)
+	qtt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["trace"].(string)
+
+	fwt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["warn"].(string)
+	fit := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["info"].(string)
+	fdt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["debug"].(string)
+	ftt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["trace"].(string)
 
 	return &GetItemResponse{
-		Query_warn_threshold: qwt,
-		Query_info_threshold: qit,
+		Query_warn_threshold:  qwt,
+		Query_info_threshold:  qit,
+		Query_debug_threshold: qdt,
+		Query_trace_threshold: qtt,
+
+		Fetch_warn_threshold:  fwt,
+		Fetch_info_threshold:  fit,
+		Fetch_debug_threshold: fdt,
+		Fetch_trace_threshold: ftt,
 	}, nil
 }
 

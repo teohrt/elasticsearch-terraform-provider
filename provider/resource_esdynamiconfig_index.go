@@ -24,7 +24,7 @@ func resourceIndexConfig() *schema.Resource {
 			},
 			"query_warn_threshold": {
 				Type:         schema.TypeString,
-				Default:      "-1",
+				Default:      -1,
 				Optional:     true,
 				ForceNew:     false,
 				Description:  "",
@@ -32,7 +32,55 @@ func resourceIndexConfig() *schema.Resource {
 			},
 			"query_info_threshold": {
 				Type:         schema.TypeString,
-				Default:      "-1",
+				Default:      -1,
+				Optional:     true,
+				ForceNew:     false,
+				Description:  "",
+				ValidateFunc: validateIndex,
+			},
+			"query_debug_threshold": {
+				Type:         schema.TypeString,
+				Default:      -1,
+				Optional:     true,
+				ForceNew:     false,
+				Description:  "",
+				ValidateFunc: validateIndex,
+			},
+			"query_trace_threshold": {
+				Type:         schema.TypeString,
+				Default:      -1,
+				Optional:     true,
+				ForceNew:     false,
+				Description:  "",
+				ValidateFunc: validateIndex,
+			},
+			"fetch_warn_threshold": {
+				Type:         schema.TypeString,
+				Default:      -1,
+				Optional:     true,
+				ForceNew:     false,
+				Description:  "",
+				ValidateFunc: validateIndex,
+			},
+			"fetch_info_threshold": {
+				Type:         schema.TypeString,
+				Default:      -1,
+				Optional:     true,
+				ForceNew:     false,
+				Description:  "",
+				ValidateFunc: validateIndex,
+			},
+			"fetch_debug_threshold": {
+				Type:         schema.TypeString,
+				Default:      -1,
+				Optional:     true,
+				ForceNew:     false,
+				Description:  "",
+				ValidateFunc: validateIndex,
+			},
+			"fetch_trace_threshold": {
+				Type:         schema.TypeString,
+				Default:      -1,
 				Optional:     true,
 				ForceNew:     false,
 				Description:  "",
@@ -67,10 +115,25 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 	reqBody := strings.NewReader(fmt.Sprintf(`
 		{
 			"index.search.slowlog.threshold.query.warn": "%s",
-			"index.search.slowlog.threshold.query.info": "%s"
+			"index.search.slowlog.threshold.query.info": "%s",
+			"index.search.slowlog.threshold.query.debug": "%s",
+			"index.search.slowlog.threshold.query.trace": "%s",
+
+			"index.search.slowlog.threshold.fetch.warn": "%s",
+			"index.search.slowlog.threshold.fetch.info": "%s",
+			"index.search.slowlog.threshold.fetch.debug": "%s",
+			"index.search.slowlog.threshold.fetch.trace": "%s"
 		}`,
 		d.Get("query_warn_threshold").(string),
-		d.Get("query_info_threshold").(string)))
+		d.Get("query_info_threshold").(string),
+		d.Get("query_debug_threshold").(string),
+		d.Get("query_trace_threshold").(string),
+
+		d.Get("fetch_warn_threshold").(string),
+		d.Get("fetch_info_threshold").(string),
+		d.Get("fetch_debug_threshold").(string),
+		d.Get("fetch_trace_threshold").(string),
+	))
 
 	res, err := client.Put(d.Get("name").(string), reqBody)
 	if err != nil {
@@ -97,6 +160,13 @@ func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 	d.Set("name", d.Id())
 	d.Set("query_warn_threshold", item.Query_warn_threshold)
 	d.Set("query_info_threshold", item.Query_info_threshold)
+	d.Set("query_debug_threshold", item.Query_debug_threshold)
+	d.Set("query_trace_threshold", item.Query_trace_threshold)
+
+	d.Set("fetch_warn_threshold", item.Fetch_warn_threshold)
+	d.Set("fetch_info_threshold", item.Fetch_info_threshold)
+	d.Set("fetch_debug_threshold", item.Fetch_debug_threshold)
+	d.Set("fetch_trace_threshold", item.Fetch_trace_threshold)
 
 	return nil
 }
@@ -106,7 +176,14 @@ func resourceDeleteItem(d *schema.ResourceData, m interface{}) error {
 	body := strings.NewReader(`
 		{
 			"index.search.slowlog.threshold.query.warn": -1,
-			"index.search.slowlog.threshold.query.info": -1
+			"index.search.slowlog.threshold.query.info": -1,
+			"index.search.slowlog.threshold.query.debug": -1,
+			"index.search.slowlog.threshold.query.trace": -1,
+
+			"index.search.slowlog.threshold.fetch.warn": -1,
+			"index.search.slowlog.threshold.fetch.info": -1,
+			"index.search.slowlog.threshold.fetch.debug": -1,
+			"index.search.slowlog.threshold.fetch.trace": -1
 		}`)
 
 	res, err := client.Put(d.Get("name").(string), body)
