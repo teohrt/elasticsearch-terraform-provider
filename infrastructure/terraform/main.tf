@@ -3,8 +3,8 @@ provider "esdynamiconfig" {
     region = "us-east-2"
 }
 
-resource "esdynamiconfig_index" "test" {
+resource "esdynamiconfig_index" "activity_points" {
     name = "activity_points"
-    query_warn_threshold = "100s"
-    query_info_threshold = "100s"
+    query_warn_threshold = "10s"
+    query_info_threshold = "10s"
 }

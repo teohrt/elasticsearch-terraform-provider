@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -90,19 +89,14 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 	client := m.(client.Client)
 
-	res, err := client.Get(d.Get("name").(string))
-	if err != nil {
-		return err
-	}
-
-	item, err := readItem(res, d.Get("name").(string))
+	item, err := client.Get(d.Get("name").(string))
 	if err != nil {
 		return err
 	}
 
 	d.Set("name", d.Id())
-	d.Set("query_warn_threshold", item.query_warn_threshold)
-	d.Set("query_info_threshold", item.query_info_threshold)
+	d.Set("query_warn_threshold", item.Query_warn_threshold)
+	d.Set("query_info_threshold", item.Query_info_threshold)
 
 	return nil
 }
@@ -141,24 +135,4 @@ func handleResponse(res *http.Response) error {
 	}
 
 	return nil
-}
-
-func readItem(res *http.Response, indexName string) (*readResponse, error) {
-	resBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return &readResponse{}, err
-	}
-
-	var jsonInterface interface{}
-	if err = json.Unmarshal(resBody, &jsonInterface); err != nil {
-		return &readResponse{}, err
-	}
-
-	qwt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["warn"].(string)
-	qit := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["info"].(string)
-
-	return &readResponse{
-		query_warn_threshold: qwt,
-		query_info_threshold: qit,
-	}, nil
 }

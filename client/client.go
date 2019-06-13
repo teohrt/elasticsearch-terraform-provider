@@ -1,8 +1,10 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -15,7 +17,7 @@ type Config struct {
 }
 
 type Client interface {
-	Get(index string) (*http.Response, error)
+	Get(index string) (*GetItemResponse, error)
 	Put(index string, body io.Reader) (*http.Response, error)
 }
 
@@ -47,7 +49,7 @@ func New(config Config) Client {
 	}
 }
 
-func (c clientImpl) Get(index string) (*http.Response, error) {
+func (c clientImpl) Get(index string) (*GetItemResponse, error) {
 	url := fmt.Sprintf("%s/%s/_settings?pretty", c.endpoint, index)
 
 	res, err := c.client.Get(url)
@@ -55,11 +57,11 @@ func (c clientImpl) Get(index string) (*http.Response, error) {
 		return nil, err
 	}
 
-	return res, nil
+	return getItem(res, index)
 }
 
 func (c clientImpl) Put(index string, body io.Reader) (*http.Response, error) {
-	url := fmt.Sprintf("%s/%s/_settings?pretty", c.endpoint, index)
+	url := fmt.Sprintf("%s/%s/_settings", c.endpoint, index)
 
 	req, err := http.NewRequest("PUT", url, body)
 	if err != nil {
@@ -74,4 +76,24 @@ func (c clientImpl) Put(index string, body io.Reader) (*http.Response, error) {
 	}
 
 	return res, nil
+}
+
+func getItem(res *http.Response, indexName string) (*GetItemResponse, error) {
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return &GetItemResponse{}, err
+	}
+
+	var jsonInterface interface{}
+	if err = json.Unmarshal(resBody, &jsonInterface); err != nil {
+		return &GetItemResponse{}, err
+	}
+
+	qwt := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["warn"].(string)
+	qit := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["info"].(string)
+
+	return &GetItemResponse{
+		Query_warn_threshold: qwt,
+		Query_info_threshold: qit,
+	}, nil
 }
