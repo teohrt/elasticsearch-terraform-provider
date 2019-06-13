@@ -128,9 +128,7 @@ func handleResponse(res *http.Response) error {
 		return err
 	}
 
-	goodRes := `{"acknowledged":true}`
-
-	if string(resBody) != goodRes {
+	if string(resBody) != `{"acknowledged":true}` {
 		return errors.New(string(resBody))
 	}
 
