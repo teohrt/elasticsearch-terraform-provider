@@ -43,12 +43,12 @@ func (c clientImpl) Get(index string) (*GetItemResponse, error) {
 		return nil, err
 	}
 
-	signedReq, err := c.signRequest(req, nil)
+	err = c.awsSigner(req, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := c.client.Do(signedReq)
+	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -64,12 +64,12 @@ func (c clientImpl) Put(index string, body io.ReadSeeker) (*http.Response, error
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	signedReq, err := c.signRequest(req, body)
+	err = c.awsSigner(req, body)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := c.client.Do(signedReq)
+	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -98,13 +98,8 @@ func getItem(res *http.Response, indexName string) (*GetItemResponse, error) {
 	}, nil
 }
 
-func (c clientImpl) signRequest(req *http.Request, body io.ReadSeeker) (*http.Request, error) {
+func (c clientImpl) awsSigner(req *http.Request, body io.ReadSeeker) error {
 	signer := v4.NewSigner(c.Creds)
-
 	_, err := signer.Sign(req, body, "es", c.Region, time.Now())
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
+	return err
 }
