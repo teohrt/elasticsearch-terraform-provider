@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/teohrt/terraform-provider-esdynamiconfig/client"
+	"github.com/teohrt/terraform-provider-esslowlogconfig/client"
 )
 
 func resourceIndexConfig() *schema.Resource {

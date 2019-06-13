@@ -4,7 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/teohrt/terraform-provider-esdynamiconfig/client"
+	"github.com/teohrt/terraform-provider-esslowlogconfig/client"
 )
 
 func Provider() terraform.ResourceProvider {
@@ -20,7 +20,7 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"esdynamiconfig_index": resourceIndexConfig(),
+			"esslowlogconfig_index": resourceIndexConfig(),
 		},
 		ConfigureFunc: providerClient,
 	}

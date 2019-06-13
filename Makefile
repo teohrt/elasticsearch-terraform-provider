@@ -1,4 +1,4 @@
-BINARY_NAME=terraform-provider-esdynamiconfig
+BINARY_NAME=terraform-provider-esslowlogconfig
 DIRCMD=cd infrastructure/terraform;
 TERRAFORM=$(DIRCMD) terraform 
 

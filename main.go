@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hashicorp/terraform/plugin"
-	"github.com/teohrt/terraform-provider-esdynamiconfig/provider"
+	"github.com/teohrt/terraform-provider-esslowlogconfig/provider"
 )
 
 func main() {
