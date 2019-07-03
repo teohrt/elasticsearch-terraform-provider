@@ -70,12 +70,7 @@ func (c clientImpl) Put(index string, body io.ReadSeeker) (*http.Response, error
 		return nil, err
 	}
 
-	res, err := c.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return c.client.Do(req)
 }
 
 func getItem(res *http.Response, indexName string) (*GetItemResponse, error) {
