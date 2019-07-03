@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -74,48 +73,60 @@ func (c clientImpl) Put(index string, body io.ReadSeeker) (*http.Response, error
 }
 
 func getItem(res *http.Response, indexName string) (*GetItemResponse, error) {
+	defer res.Body.Close()
+
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return &GetItemResponse{}, err
 	}
 
+	/*
+		All of this marshalling and unmarshalling is necessary to
+		circumvent a dynamic field name in the response body. The
+		field depends on the index name. Because of this, unmarshalling
+		directly into a generic struct doesn't work because not all of
+		the fields are static.
+
+		What this does is basically dive into the response body JSON
+		just past the indexName field, so we're able to unmarshal the
+		rest of the JSON into a struct that will match our field names
+		accurately.
+	*/
 	var jsonInterface interface{}
 	if err = json.Unmarshal(resBody, &jsonInterface); err != nil {
-		return &GetItemResponse{}, err
+		return nil, err
 	}
 
-	qwt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["warn"].(string)
-	qit, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["info"].(string)
-	qdt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["debug"].(string)
-	qtt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["query"].(map[string]interface{})["trace"].(string)
-	fwt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["warn"].(string)
-	fit, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["info"].(string)
-	fdt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["debug"].(string)
-	ftt, ok := jsonInterface.(map[string]interface{})[indexName].(map[string]interface{})["settings"].(map[string]interface{})["index"].(map[string]interface{})["search"].(map[string]interface{})["slowlog"].(map[string]interface{})["threshold"].(map[string]interface{})["fetch"].(map[string]interface{})["trace"].(string)
+	unmarshalledIndex, ok := jsonInterface.(map[string]interface{})[indexName]
 	if !ok {
-		return apiError()
+		return nil, err
 	}
 
-	item := &GetItemResponse{
-		Query_warn_threshold:  qwt,
-		Query_info_threshold:  qit,
-		Query_debug_threshold: qdt,
-		Query_trace_threshold: qtt,
-		Fetch_warn_threshold:  fwt,
-		Fetch_info_threshold:  fit,
-		Fetch_debug_threshold: fdt,
-		Fetch_trace_threshold: ftt,
+	bytes, err := json.Marshal(unmarshalledIndex)
+	if err != nil {
+		return nil, err
 	}
 
-	return item, nil
+	var container Container
+	if err = json.Unmarshal(bytes, &container); err != nil {
+		return nil, err
+	}
+
+	return &GetItemResponse{
+		Query_warn_threshold:  container.Settings.Index.Search.Slowlog.Threshold.Query.Warn,
+		Query_info_threshold:  container.Settings.Index.Search.Slowlog.Threshold.Query.Info,
+		Query_debug_threshold: container.Settings.Index.Search.Slowlog.Threshold.Query.Debug,
+		Query_trace_threshold: container.Settings.Index.Search.Slowlog.Threshold.Query.Trace,
+
+		Fetch_warn_threshold:  container.Settings.Index.Search.Slowlog.Threshold.Fetch.Warn,
+		Fetch_info_threshold:  container.Settings.Index.Search.Slowlog.Threshold.Fetch.Info,
+		Fetch_debug_threshold: container.Settings.Index.Search.Slowlog.Threshold.Fetch.Debug,
+		Fetch_trace_threshold: container.Settings.Index.Search.Slowlog.Threshold.Fetch.Trace,
+	}, nil
 }
 
 func (c clientImpl) awsSigner(req *http.Request, body io.ReadSeeker) error {
 	signer := v4.NewSigner(c.Creds)
 	_, err := signer.Sign(req, body, "es", c.Region, time.Now())
 	return err
-}
-
-func apiError() (*GetItemResponse, error) {
-	return nil, errors.New("Provider error: An outdated version of Elasticsearch's slow log API contract is being used.")
 }

@@ -11,3 +11,35 @@ type GetItemResponse struct {
 	Fetch_debug_threshold string
 	Fetch_trace_threshold string
 }
+
+type Container struct {
+	Settings Settings `json:"settings"`
+}
+
+type Settings struct {
+	Index Index `json:"index"`
+}
+
+type Index struct {
+	Search Search `json:"search"`
+}
+
+type Search struct {
+	Slowlog Slowlog `json:"slowlog"`
+}
+
+type Slowlog struct {
+	Threshold Threshold `json:"threshold"`
+}
+
+type Threshold struct {
+	Query ThresholdType `json:"query"`
+	Fetch ThresholdType `json:"fetch"`
+}
+
+type ThresholdType struct {
+	Warn  string `json:"warn"`
+	Info  string `json:"info"`
+	Debug string `json:"debug"`
+	Trace string `json:"trace"`
+}
