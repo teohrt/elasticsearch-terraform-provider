@@ -136,6 +136,7 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 	))
 
 	res, err := client.Put(d.Get("name").(string), reqBody)
+	defer res.Body.Close()
 	if err != nil {
 		return err
 	}
@@ -146,7 +147,7 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 	}
 
 	d.SetId(d.Get("name").(string))
-	return nil
+	return resourceReadItem(d, m)
 }
 
 func resourceReadItem(d *schema.ResourceData, m interface{}) error {
@@ -154,6 +155,7 @@ func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 
 	item, err := client.Get(d.Get("name").(string))
 	if err != nil {
+		d.SetId("")
 		return err
 	}
 
@@ -187,6 +189,7 @@ func resourceDeleteItem(d *schema.ResourceData, m interface{}) error {
 		}`)
 
 	res, err := client.Put(d.Get("name").(string), body)
+	defer res.Body.Close()
 	if err != nil {
 		return err
 	}
